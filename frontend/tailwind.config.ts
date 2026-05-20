@@ -1,0 +1,238 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: ['./src/**/*.{ts,tsx,mdx}'],
+  theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1.5rem',
+        lg: '2rem',
+      },
+      screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1200px',
+      },
+    },
+    extend: {
+      colors: {
+        sky: {
+          DEFAULT: '#009FE3',
+          50: '#EAF7FD',
+          100: '#D2EEFA',
+          200: '#A5DDF5',
+          300: '#78CCF0',
+          400: '#3DB6EA',
+          500: '#009FE3',
+          600: '#0080B6',
+          700: '#006089',
+          800: '#00405B',
+          900: '#00202E',
+        },
+        navy: {
+          DEFAULT: '#071E3D',
+          50: '#E7EBF0',
+          100: '#C3CCD8',
+          200: '#8898B3',
+          300: '#4D658E',
+          400: '#264166',
+          500: '#071E3D',
+          600: '#061833',
+          700: '#051329',
+          800: '#040E1E',
+          900: '#020814',
+        },
+        sunburst: {
+          DEFAULT: '#FF8A00',
+          50: '#FFF3E5',
+          100: '#FFE0BD',
+          200: '#FFC07A',
+          300: '#FFA13D',
+          400: '#FF8A00',
+          500: '#E67A00',
+          600: '#B36000',
+        },
+        charcoal: {
+          DEFAULT: '#222831',
+          50: '#F4F5F6',
+          100: '#E0E2E5',
+          200: '#B3B7BD',
+          300: '#858C95',
+          400: '#58616D',
+          500: '#222831',
+        },
+        success: '#2EAD4F',
+        danger: '#D64545',
+        soft: '#EAF7FD',
+        cloud: '#FFFFFF',
+      },
+      fontFamily: {
+        heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        card: '0 1px 3px rgba(7, 30, 61, 0.06), 0 4px 16px rgba(7, 30, 61, 0.08)',
+        elevated: '0 4px 12px rgba(7, 30, 61, 0.08), 0 12px 32px rgba(7, 30, 61, 0.12)',
+        ring: '0 0 0 4px rgba(0, 159, 227, 0.15)',
+      },
+      borderRadius: {
+        DEFAULT: '0.5rem',
+        card: '1rem',
+        pill: '9999px',
+      },
+      keyframes: {
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-in-right': {
+          from: { opacity: '0', transform: 'translateX(16px)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
+        },
+        'cloud-drift': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(12px)' },
+        },
+        'pulse-ring': {
+          '0%': { boxShadow: '0 0 0 0 rgba(0, 159, 227, 0.5)' },
+          '70%': { boxShadow: '0 0 0 12px rgba(0, 159, 227, 0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(0, 159, 227, 0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        twinkle: {
+          '0%, 100%': { opacity: '0.2', transform: 'scale(0.8)' },
+          '50%': { opacity: '0.95', transform: 'scale(1.1)' },
+        },
+        'parachute-fall-a': {
+          '0%': { transform: 'translate(-10vw, -20vh) rotate(-4deg)', opacity: '0' },
+          '8%': { opacity: '0.6' },
+          '92%': { opacity: '0.6' },
+          '100%': { transform: 'translate(15vw, 115vh) rotate(3deg)', opacity: '0' },
+        },
+        'parachute-fall-b': {
+          '0%': { transform: 'translate(28vw, -25vh) rotate(3deg)', opacity: '0' },
+          '8%': { opacity: '0.5' },
+          '92%': { opacity: '0.5' },
+          '100%': { transform: 'translate(-14vw, 118vh) rotate(-3deg)', opacity: '0' },
+        },
+        'parachute-fall-c': {
+          '0%': { transform: 'translate(50vw, -15vh) rotate(-2deg)', opacity: '0' },
+          '8%': { opacity: '0.45' },
+          '92%': { opacity: '0.45' },
+          '100%': { transform: 'translate(10vw, 120vh) rotate(2deg)', opacity: '0' },
+        },
+        'parachute-fall-d': {
+          '0%': { transform: 'translate(70vw, -10vh) rotate(2deg)', opacity: '0' },
+          '8%': { opacity: '0.55' },
+          '92%': { opacity: '0.55' },
+          '100%': { transform: 'translate(40vw, 122vh) rotate(-3deg)', opacity: '0' },
+        },
+        'parachute-fall-e': {
+          '0%': { transform: 'translate(85vw, -8vh) rotate(-3deg)', opacity: '0' },
+          '8%': { opacity: '0.35' },
+          '92%': { opacity: '0.35' },
+          '100%': { transform: 'translate(55vw, 125vh) rotate(4deg)', opacity: '0' },
+        },
+        'parachute-sway': {
+          '0%, 100%': { transform: 'rotate(-3deg) translateX(0)' },
+          '50%': { transform: 'rotate(3deg) translateX(8px)' },
+        },
+        'freefall-track': {
+          '0%': { transform: 'translate(0, -15vh) rotate(8deg)', opacity: '0' },
+          '5%': { opacity: '0.8' },
+          '95%': { opacity: '0.8' },
+          '100%': { transform: 'translate(8vw, 120vh) rotate(8deg)', opacity: '0' },
+        },
+        'freefall-track-2': {
+          '0%': { transform: 'translate(0, -10vh) rotate(-6deg)', opacity: '0' },
+          '5%': { opacity: '0.7' },
+          '95%': { opacity: '0.7' },
+          '100%': { transform: 'translate(-6vw, 125vh) rotate(-6deg)', opacity: '0' },
+        },
+        'aircraft-pass': {
+          '0%': { transform: 'translateX(-20vw)', opacity: '0' },
+          '15%': { opacity: '0.55' },
+          '85%': { opacity: '0.55' },
+          '100%': { transform: 'translateX(120vw)', opacity: '0' },
+        },
+        'aircraft-pass-reverse': {
+          '0%': { transform: 'translateX(120vw) scaleX(-1)', opacity: '0' },
+          '15%': { opacity: '0.4' },
+          '85%': { opacity: '0.4' },
+          '100%': { transform: 'translateX(-20vw) scaleX(-1)', opacity: '0' },
+        },
+        'cloud-cross': {
+          '0%': { transform: 'translateX(-30vw)' },
+          '100%': { transform: 'translateX(130vw)' },
+        },
+        'cloud-cross-slow': {
+          '0%': { transform: 'translateX(110vw)' },
+          '100%': { transform: 'translateX(-40vw)' },
+        },
+        'wind-streak': {
+          '0%': { transform: 'translateX(-30vw) translateY(0)', opacity: '0' },
+          '20%': { opacity: '0.6' },
+          '80%': { opacity: '0.6' },
+          '100%': { transform: 'translateX(130vw) translateY(20vh)', opacity: '0' },
+        },
+        'altitude-ring': {
+          '0%': { transform: 'scale(0.3)', opacity: '0.6' },
+          '100%': { transform: 'scale(2.2)', opacity: '0' },
+        },
+        'horizon-glow': {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '0.7' },
+        },
+        'contrail-fade': {
+          '0%, 100%': { opacity: '0.25' },
+          '50%': { opacity: '0.55' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.3s ease-out',
+        'fade-in-up': 'fade-in-up 0.4s ease-out',
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
+        'cloud-drift': 'cloud-drift 8s ease-in-out infinite',
+        'pulse-ring': 'pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        shimmer: 'shimmer 2s linear infinite',
+        twinkle: 'twinkle 3s ease-in-out infinite',
+        'parachute-a': 'parachute-fall-a 28s linear infinite',
+        'parachute-b': 'parachute-fall-b 36s linear infinite',
+        'parachute-c': 'parachute-fall-c 32s linear infinite',
+        'parachute-d': 'parachute-fall-d 40s linear infinite',
+        'parachute-e': 'parachute-fall-e 26s linear infinite',
+        'parachute-sway': 'parachute-sway 3.5s ease-in-out infinite',
+        'freefall-1': 'freefall-track 9s linear infinite',
+        'freefall-2': 'freefall-track-2 11s linear infinite',
+        'aircraft-pass': 'aircraft-pass 38s linear infinite',
+        'aircraft-pass-reverse': 'aircraft-pass-reverse 52s linear infinite',
+        'cloud-cross': 'cloud-cross 80s linear infinite',
+        'cloud-cross-slow': 'cloud-cross-slow 110s linear infinite',
+        'wind-streak': 'wind-streak 2.8s linear infinite',
+        'altitude-ring': 'altitude-ring 4s ease-out infinite',
+        'horizon-glow': 'horizon-glow 6s ease-in-out infinite',
+        'contrail-fade': 'contrail-fade 8s ease-in-out infinite',
+      },
+      backgroundImage: {
+        'sky-gradient': 'linear-gradient(135deg, #009FE3 0%, #071E3D 100%)',
+        'soft-gradient': 'linear-gradient(180deg, #EAF7FD 0%, #FFFFFF 100%)',
+        'navy-gradient': 'linear-gradient(180deg, #0a2a55 0%, #071E3D 100%)',
+        shimmer:
+          'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%)',
+      },
+    },
+  },
+  plugins: [require('tailwindcss-animate')],
+};
+
+export default config;

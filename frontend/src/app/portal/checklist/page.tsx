@@ -1,0 +1,103 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { ChecklistCard } from '@/components/portal/ChecklistCard';
+import { HeroSection } from '@/components/portal/dashboard/HeroSection';
+import { AltitudeTimeline } from '@/components/portal/dashboard/AltitudeTimeline';
+import { ReadinessRing } from '@/components/portal/dashboard/ReadinessRing';
+import { StatStrip } from '@/components/portal/dashboard/StatStrip';
+import { HelpBanner } from '@/components/portal/dashboard/HelpBanner';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { checklistIntro, checklistItems } from '@/content/checklist';
+import { getBooking, getMe } from '@/lib/api';
+import { useSession } from '@/lib/auth';
+import type { BookingDetails, SessionUser } from '@/types';
+
+export default function ChecklistPage() {
+  const { session } = useSession();
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [booking, setBooking] = useState<BookingDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const [me, bk] = await Promise.all([getMe(), getBooking()]);
+      if (!active) return;
+      setUser(me);
+      setBooking(bk);
+      setLoading(false);
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const displayName =
+    user?.account.displayName.split(' ')[0] ??
+    session?.email?.split('@')[0] ??
+    'Jumper';
+
+  return (
+    <div className="space-y-8">
+      <HeroSection
+        displayName={displayName}
+        jumpDate={booking?.date1}
+        venueName={booking?.venueName}
+        bookingRef={booking?.bookingRef}
+        loading={loading}
+      />
+
+      <StatStrip booking={booking} loading={loading} />
+
+      {/* Bento row: altitude timeline (wide) + readiness ring (narrow) */}
+      <section className="grid gap-6 lg:grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
+          className="lg:col-span-2"
+        >
+          <AltitudeTimeline />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+        >
+          {loading || !user || !booking ? (
+            <Skeleton className="h-full min-h-[28rem]" />
+          ) : (
+            <ReadinessRing user={user} booking={booking} />
+          )}
+        </motion.div>
+      </section>
+
+      {/* Checklist */}
+      <section aria-labelledby="checklist-heading" className="space-y-4">
+        <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-sky">Before you jump</p>
+            <h2
+              id="checklist-heading"
+              className="mt-1 text-2xl font-bold text-navy sm:text-3xl text-balance"
+            >
+              Your pre-jump checklist
+            </h2>
+          </div>
+          <p className="max-w-md text-sm text-charcoal-400 sm:text-right">{checklistIntro}</p>
+        </header>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          {checklistItems.map((item, i) => (
+            <ChecklistCard key={item.id} item={item} index={i} />
+          ))}
+        </div>
+      </section>
+
+      <HelpBanner />
+    </div>
+  );
+}

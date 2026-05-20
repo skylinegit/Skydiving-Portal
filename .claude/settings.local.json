@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(pnpm --version)",
+      "PowerShell(npm config set prefix \"$env:USERPROFILE\\\\AppData\\\\Roaming\\\\npm\"; npm install -g pnpm 2>&1 | Select-Object -Last 20)",
+      "Bash(cp \"/c/Users/HP/Downloads/Skyline-Skydiving-colour.png\" \"E:/Company Projects/Company Projects/Skydiving-Portal/frontend/public/images/skyline-logo-colour.png\")",
+      "Bash(cp \"/c/Users/HP/Downloads/Skyline-Skydiving-white.png\" \"E:/Company Projects/Company Projects/Skydiving-Portal/frontend/public/images/skyline-logo-white.png\")"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+# pnpm v11+ moved several settings out of package.json. This file is the new
+# home for pnpm-specific configuration. A single-package repo uses it too;
+# pnpm reads it regardless of whether workspaces are defined.
+
+# Postinstall scripts are blocked by default in pnpm v9+. Explicitly allow
+# the ones we trust here.
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
