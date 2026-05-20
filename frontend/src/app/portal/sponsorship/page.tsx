@@ -151,7 +151,7 @@ function CharityView({ booking }: { booking: BookingDetails }) {
     <div className="space-y-8">
       <PageHeader
         eyebrow="Fundraising"
-        title="Charity sponsorships"
+        title="Charity sponsorship"
         description="Track your fundraising progress, jump cost and the cancellation policy."
       />
 
