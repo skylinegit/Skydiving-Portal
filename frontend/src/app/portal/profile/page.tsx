@@ -9,24 +9,35 @@ import { BookingDetailsCard } from '@/components/portal/BookingDetailsCard';
 import { VenueChangeField } from '@/components/portal/VenueChangeField';
 import { DatesChangeField } from '@/components/portal/DatesChangeField';
 import { ProfileForm } from '@/components/portal/ProfileForm';
-import { getBooking, getMe } from '@/lib/api';
-import type { BookingDetails, SessionUser, UserAccount, UserProfile } from '@/types';
+import { getBooking } from '@/lib/api';
+import { useCurrentUser } from '@/lib/auth';
+import type { BookingDetails, UserAccount, UserProfile } from '@/types';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<SessionUser | null>(null);
+  // Shared user from SessionProvider — no extra GET /me fetch on this page.
+  const ctxUser = useCurrentUser();
+  // Local copy so the form widgets can optimistically apply changes.
+  const [user, setUser] = useState(ctxUser);
   const [booking, setBooking] = useState<BookingDetails | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(true);
+
+  // Sync local state when the context user changes (initial mount, refresh).
+  useEffect(() => {
+    setUser(ctxUser);
+  }, [ctxUser]);
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      const [me, bk] = await Promise.all([getMe(), getBooking()]);
-      if (!active) return;
-      setUser(me);
-      setBooking(bk);
-      setLoading(false);
-    }
-    load();
+    getBooking()
+      .then((bk) => {
+        if (active) setBooking(bk);
+      })
+      .catch(() => {
+        if (active) setBooking(null);
+      })
+      .finally(() => {
+        if (active) setBookingLoading(false);
+      });
     return () => {
       active = false;
     };
@@ -40,6 +51,8 @@ export default function ProfilePage() {
     setUser((prev) => (prev ? { ...prev, profile: next } : prev));
   };
 
+  const isLoading = bookingLoading || user == null;
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -48,7 +61,7 @@ export default function ProfilePage() {
         description="Update your account details, request changes to your booking and complete your jumper profile."
       />
 
-      {loading || !user || !booking ? (
+      {isLoading || !user || !booking ? (
         <div className="space-y-6">
           <Skeleton className="h-48" />
           <Skeleton className="h-64" />

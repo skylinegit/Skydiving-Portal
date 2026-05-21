@@ -10,35 +10,37 @@ import { StatStrip } from '@/components/portal/dashboard/StatStrip';
 import { HelpBanner } from '@/components/portal/dashboard/HelpBanner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { checklistIntro, checklistItems } from '@/content/checklist';
-import { getBooking, getMe } from '@/lib/api';
-import { useSession } from '@/lib/auth';
-import type { BookingDetails, SessionUser } from '@/types';
+import { getBooking } from '@/lib/api';
+import { useCurrentUser } from '@/lib/auth';
+import type { BookingDetails } from '@/types';
 
 export default function ChecklistPage() {
-  const { session } = useSession();
-  const [user, setUser] = useState<SessionUser | null>(null);
+  // Shared user from SessionProvider — no extra GET /me fetch on this page.
+  const user = useCurrentUser();
   const [booking, setBooking] = useState<BookingDetails | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      const [me, bk] = await Promise.all([getMe(), getBooking()]);
-      if (!active) return;
-      setUser(me);
-      setBooking(bk);
-      setLoading(false);
-    }
-    load();
+    getBooking()
+      .then((bk) => {
+        if (active) setBooking(bk);
+      })
+      .catch(() => {
+        // 404 (no booking yet) or network blip — fall through to the loading
+        // state. Toast/banner UX can be layered later.
+        if (active) setBooking(null);
+      })
+      .finally(() => {
+        if (active) setBookingLoading(false);
+      });
     return () => {
       active = false;
     };
   }, []);
 
-  const displayName =
-    user?.account.displayName.split(' ')[0] ??
-    session?.email?.split('@')[0] ??
-    'Jumper';
+  const displayName = user?.account.displayName.split(' ')[0] ?? 'Jumper';
+  const isLoading = bookingLoading || user == null;
 
   return (
     <div className="space-y-8">
@@ -47,10 +49,10 @@ export default function ChecklistPage() {
         jumpDate={booking?.date1}
         venueName={booking?.venueName}
         bookingRef={booking?.bookingRef}
-        loading={loading}
+        loading={isLoading}
       />
 
-      <StatStrip booking={booking} loading={loading} />
+      <StatStrip booking={booking} loading={isLoading} />
 
       {/* Bento row: altitude timeline (wide) + readiness ring (narrow) */}
       <section className="grid gap-6 lg:grid-cols-3">
@@ -67,7 +69,7 @@ export default function ChecklistPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
         >
-          {loading || !user || !booking ? (
+          {isLoading || !user || !booking ? (
             <Skeleton className="h-full min-h-[28rem]" />
           ) : (
             <ReadinessRing user={user} booking={booking} />
