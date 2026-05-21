@@ -1,17 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
-  Phone,
-  MapPin,
-  Scale,
   AlertCircle,
+  AlertTriangle,
+  BedDouble,
+  Building2,
+  CalendarDays,
+  Camera,
+  CheckCircle2,
+  ClipboardList,
+  Cloud,
   ExternalLink,
-  Info,
+  Map as MapIcon,
+  MapPin,
+  Phone,
+  Scale,
+  Shirt,
+  ShieldCheck,
 } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/Accordion';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/portal/PageHeader';
@@ -28,11 +43,19 @@ export default function VenuePage() {
   useEffect(() => {
     let active = true;
     async function load() {
-      const bk = await getBooking();
-      if (!active) return;
-      setBooking(bk);
-      setAirfield(getAirfield(bk.venueId));
-      setLoading(false);
+      try {
+        const bk = await getBooking();
+        if (!active) return;
+        setBooking(bk);
+        setAirfield(getAirfield(bk.venueId));
+      } catch {
+        if (active) {
+          setBooking(null);
+          setAirfield(null);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
     }
     load();
     return () => {
@@ -40,26 +63,21 @@ export default function VenuePage() {
     };
   }, []);
 
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow="Your airfield"
-        title={
-          loading
-            ? 'Venue information'
-            : `${airfield?.name ?? booking?.venueName ?? 'Venue'}`
-        }
-        description="Everything you need to know about your booked airfield."
-      />
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-64" />
+        <Skeleton className="h-32" />
+        <Skeleton className="h-72" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
 
-      {loading ? (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Skeleton className="h-48 lg:col-span-2" />
-          <Skeleton className="h-48" />
-          <Skeleton className="h-64 lg:col-span-3" />
-          <Skeleton className="h-96 lg:col-span-3" />
-        </div>
-      ) : !airfield ? (
+  if (!airfield) {
+    return (
+      <div className="space-y-6">
+        <PageHeader eyebrow="Your airfield" title="Venue information" />
         <Card>
           <div className="flex items-start gap-3 text-charcoal-400">
             <AlertCircle className="size-5 shrink-0 text-sunburst" aria-hidden />
@@ -70,158 +88,235 @@ export default function VenuePage() {
             </p>
           </div>
         </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Top row: summary + contact */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="relative overflow-hidden lg:col-span-2">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-sky/10 blur-3xl"
-              />
-              <div className="relative">
-                <Badge tone="sky">{airfield.region}</Badge>
-                <h2 className="mt-3 text-2xl font-bold text-navy sm:text-3xl">
-                  Some important information about your airfield
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-charcoal">{airfield.intro}</p>
-              </div>
-            </Card>
+      </div>
+    );
+  }
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact</CardTitle>
-                <CardDescription>Call the airfield directly with any questions.</CardDescription>
-              </CardHeader>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-sky" aria-hidden />
-                  <div>
-                    <span className="block text-charcoal">{airfield.address}</span>
-                    <span className="block font-mono text-xs uppercase text-charcoal-400">
-                      {airfield.postcode}
-                    </span>
-                  </div>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone className="size-4 shrink-0 text-sky" aria-hidden />
-                  <a
-                    href={`tel:${airfield.phone.replace(/\s/g, '')}`}
-                    className="font-semibold text-navy hover:text-sky"
-                  >
-                    {airfield.phone}
-                  </a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Scale className="size-4 shrink-0 text-sky" aria-hidden />
-                  <span>
-                    Weight limit:{' '}
-                    <span className="font-semibold text-navy">
-                      {formatWeight(airfield.weightLimitKg)}
-                    </span>
-                  </span>
-                </li>
-              </ul>
-              <Button
-                asChild
-                variant="secondary"
-                size="sm"
-                className="mt-5"
-                rightIcon={<ExternalLink className="size-4" aria-hidden />}
-              >
-                <a
-                  href={`https://www.google.com/maps/search/${encodeURIComponent(airfield.postcode)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open in maps
-                </a>
-              </Button>
-            </Card>
-          </div>
+  const phoneTel = airfield.phone.replace(/\s/g, '');
+  const mapHref = `https://www.google.com/maps/search/${encodeURIComponent(
+    `${airfield.address}, ${airfield.postcode}`,
+  )}`;
 
-          {/* Weight surcharge + important notes */}
-          {airfield.weightSurchargeNote && (
-            <div
-              role="status"
-              className="flex items-start gap-3 rounded-card border border-sunburst/30 bg-sunburst-50 p-4 text-sm text-charcoal"
-            >
-              <Info className="mt-0.5 size-5 shrink-0 text-sunburst" aria-hidden />
-              <span>{airfield.weightSurchargeNote}</span>
-            </div>
-          )}
+  return (
+    <div className="space-y-6">
+      {/* ---------------------------------------------------------------- */}
+      {/* Hero card: eyebrow + name + address + 4 info tiles + 2 buttons   */}
+      {/* ---------------------------------------------------------------- */}
+      <Card>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-charcoal-300">
+          <MapPin className="size-3.5" aria-hidden />
+          Your airfield · {airfield.region}
+        </p>
+        <h1 className="mt-2 text-3xl font-bold text-navy sm:text-4xl">{airfield.name}</h1>
+        <p className="mt-2 text-base text-charcoal-400">
+          {airfield.address}, <span className="font-mono uppercase">{airfield.postcode}</span>
+        </p>
 
-          {airfield.importantNotes.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Before your jump</CardTitle>
-              </CardHeader>
-              <ul className="space-y-3 text-base leading-relaxed text-charcoal">
-                {airfield.importantNotes.map((note, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span
-                      aria-hidden
-                      className="mt-2 block size-1.5 shrink-0 rounded-full bg-sky"
-                    />
-                    <span>{note}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <InfoTile
+            icon={<CalendarDays className="size-4" aria-hidden />}
+            label="Arrival time"
+            value="See confirmation email"
+          />
+          <InfoTile
+            icon={<Cloud className="size-4" aria-hidden />}
+            label="Weather policy"
+            value="Attend regardless"
+          />
+          <InfoTile
+            icon={<Scale className="size-4" aria-hidden />}
+            label="Weight limit"
+            value={formatWeight(airfield.weightLimitKg)}
+          />
+          <InfoTile
+            icon={<Phone className="size-4" aria-hidden />}
+            label="Airfield"
+            value={airfield.phone}
+          />
+        </div>
 
-          {/* Sections: When?, Weather, Where?, etc. */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {airfield.sections.map((section) => (
-              <Card key={section.heading} className="flex flex-col">
-                <h3 className="text-lg font-bold text-navy">{section.heading}</h3>
-                <div className="mt-3 space-y-2 text-base leading-relaxed text-charcoal">
-                  {section.paragraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </div>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            leftIcon={<MapIcon className="size-4" aria-hidden />}
+          >
+            <a href={mapHref} target="_blank" rel="noopener noreferrer">
+              Open in maps
+            </a>
+          </Button>
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            leftIcon={<Phone className="size-4" aria-hidden />}
+          >
+            <a href={`tel:${phoneTel}`}>Call airfield</a>
+          </Button>
+        </div>
+      </Card>
 
-          {/* Map */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Map</CardTitle>
-              <CardDescription>
-                {airfield.address}, {airfield.postcode}
-              </CardDescription>
-            </CardHeader>
-            <div className="overflow-hidden rounded-lg border border-navy/[0.06]">
-              <iframe
-                title={`Map showing ${airfield.name}`}
-                src={airfield.mapEmbedUrl}
-                width="100%"
-                height="420"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="block w-full"
-              />
-            </div>
-          </Card>
-
-          {/* Helpful link to profile */}
-          <Card className="lg:col-span-3">
-            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div>
-                <h3 className="text-lg font-bold text-navy">Need to change your airfield?</h3>
-                <p className="text-sm text-charcoal-400">
-                  You can request a venue change from your profile page. Prices and fundraising
-                  minimums vary by airfield.
-                </p>
-              </div>
-              <Button asChild variant="secondary">
-                <Link href="/portal/profile">Go to Profile</Link>
-              </Button>
-            </div>
-          </Card>
+      {/* ---------------------------------------------------------------- */}
+      {/* Weight surcharge banner (only when the airfield specifies one)    */}
+      {/* ---------------------------------------------------------------- */}
+      {airfield.weightSurchargeNote && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-card border border-sunburst-200 bg-sunburst-50 p-4 text-base leading-relaxed text-charcoal"
+        >
+          <AlertTriangle
+            className="mt-0.5 size-5 shrink-0 text-sunburst-600"
+            aria-hidden
+          />
+          <span>{airfield.weightSurchargeNote}</span>
         </div>
       )}
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Before your jump: important notes as check bullets                */}
+      {/* ---------------------------------------------------------------- */}
+      {airfield.importantNotes.length > 0 && (
+        <Card>
+          <h2 className="flex items-center gap-2 text-xl font-bold text-navy sm:text-2xl">
+            <ShieldCheck className="size-5 text-sky" aria-hidden />
+            Before your jump
+          </h2>
+          <ul className="mt-5 space-y-4">
+            {airfield.importantNotes.map((note, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span
+                  aria-hidden
+                  className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-charcoal-200 bg-cloud"
+                >
+                  <CheckCircle2 className="size-3 text-charcoal-300" aria-hidden />
+                </span>
+                <span className="text-base leading-relaxed text-charcoal">{note}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Good to know: sections rendered as a collapsible accordion        */}
+      {/* ---------------------------------------------------------------- */}
+      {airfield.sections.length > 0 && (
+        <Card className="overflow-hidden">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-charcoal-300">
+            Good to know
+          </p>
+          {/* All collapsed by default; users can open multiple. */}
+          <Accordion type="multiple">
+            {airfield.sections.map((section) => (
+              <AccordionItem key={section.heading} value={section.heading}>
+                <AccordionTrigger>
+                  <span className="flex items-center gap-2.5">
+                    <span className="text-charcoal-400">
+                      {iconForSection(section.heading)}
+                    </span>
+                    <span>{prettifyHeading(section.heading)}</span>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  {section.paragraphs.map((p, i) => (
+                    <p key={i} className={i > 0 ? 'mt-3' : undefined}>
+                      {p}
+                    </p>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </Card>
+      )}
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Map (kept as-is per the brief)                                    */}
+      {/* ---------------------------------------------------------------- */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Map</CardTitle>
+          <CardDescription>
+            {airfield.address}, {airfield.postcode}
+          </CardDescription>
+        </CardHeader>
+        <div className="overflow-hidden rounded-lg border border-navy/[0.06]">
+          <iframe
+            title={`Map showing ${airfield.name}`}
+            src={airfield.mapEmbedUrl}
+            width="100%"
+            height="420"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="block w-full"
+          />
+        </div>
+      </Card>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Need to change your airfield? — compact CTA bar                   */}
+      {/* ---------------------------------------------------------------- */}
+      <Card>
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="text-lg font-bold text-navy">Need to change your airfield?</h3>
+            <p className="text-sm text-charcoal-400">
+              Prices and fundraising minimums vary by location.
+            </p>
+          </div>
+          <Button asChild variant="secondary">
+            <Link href="/portal/profile">Go to profile</Link>
+          </Button>
+        </div>
+      </Card>
     </div>
   );
+}
+
+// ----------------------------------------------------------------------------
+// Local components / helpers
+// ----------------------------------------------------------------------------
+
+interface InfoTileProps {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}
+
+function InfoTile({ icon, label, value }: InfoTileProps) {
+  return (
+    <div className="flex flex-col gap-1 rounded-lg border border-navy/[0.08] bg-cloud p-3">
+      <span className="flex items-center gap-1.5 text-xs font-medium text-charcoal-400">
+        <span className="text-charcoal-300">{icon}</span>
+        {label}
+      </span>
+      <p className="text-sm font-semibold text-navy">{value}</p>
+    </div>
+  );
+}
+
+/** Map a section heading (case-insensitive substring) to a small icon. */
+function iconForSection(heading: string): ReactNode {
+  const h = heading.toLowerCase();
+  if (h.includes('when')) return <CalendarDays className="size-4" aria-hidden />;
+  if (h.includes('weather')) return <Cloud className="size-4" aria-hidden />;
+  if (h.includes('where') || h.includes('getting'))
+    return <MapPin className="size-4" aria-hidden />;
+  if (h.includes('wear')) return <Shirt className="size-4" aria-hidden />;
+  if (h.includes('procedure') || h.includes('day'))
+    return <ClipboardList className="size-4" aria-hidden />;
+  if (h.includes('facilities') || h.includes('spectator'))
+    return <Building2 className="size-4" aria-hidden />;
+  if (h.includes('photo') || h.includes('video')) return <Camera className="size-4" aria-hidden />;
+  if (h.includes('accommodation') || h.includes('stay'))
+    return <BedDouble className="size-4" aria-hidden />;
+  if (h.includes('payment') || h.includes('cost') || h.includes('sponsorship'))
+    return <ExternalLink className="size-4" aria-hidden />;
+  return <CheckCircle2 className="size-4" aria-hidden />;
+}
+
+/** Strip trailing punctuation like the "?" on "When?" / "Where?" headings. */
+function prettifyHeading(heading: string): string {
+  return heading.replace(/[?:.]\s*$/, '');
 }

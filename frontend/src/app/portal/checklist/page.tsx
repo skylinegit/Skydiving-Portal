@@ -79,17 +79,15 @@ export default function ChecklistPage() {
 
       {/* Checklist */}
       <section aria-labelledby="checklist-heading" className="space-y-4">
-        <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-sky">Before you jump</p>
-            <h2
-              id="checklist-heading"
-              className="mt-1 text-2xl font-bold text-navy sm:text-3xl text-balance"
-            >
-              Your pre-jump checklist
-            </h2>
-          </div>
-          <p className="max-w-md text-sm text-charcoal-400 sm:text-right">{checklistIntro}</p>
+        <header className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-sky">Before you jump</p>
+          <h2
+            id="checklist-heading"
+            className="text-2xl font-bold text-navy sm:text-3xl text-balance"
+          >
+            Your pre-jump checklist
+          </h2>
+          <p className="max-w-2xl text-sm text-charcoal-400">{checklistIntro}</p>
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2">

@@ -1,9 +1,11 @@
 'use client';
 
-import { Check, X, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { ArrowRight, Check, Circle } from 'lucide-react';
+import { format } from 'date-fns';
+import { enGB } from 'date-fns/locale';
 import { Card } from '@/components/ui/Card';
-import { CircularProgress } from '@/components/ui/CircularProgress';
-import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { cn } from '@/lib/cn';
 import type { BookingDetails, SessionUser } from '@/types';
 
@@ -13,75 +15,174 @@ interface ReadinessRingProps {
 }
 
 interface ReadinessItem {
+  id: string;
   label: string;
   done: boolean;
+  description?: string;
+  href: string;
 }
 
 function buildItems(user: SessionUser, booking: BookingDetails): ReadinessItem[] {
   const p = user.profile;
+
+  // The medical declaration deadline is seven days before the jump.
+  // Format the date in British style, e.g. "26 May".
+  let deadlineLabel: string | null = null;
+  if (booking.date1) {
+    const jumpDate = new Date(booking.date1);
+    const deadline = new Date(jumpDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    if (!Number.isNaN(deadline.getTime())) {
+      deadlineLabel = format(deadline, 'd MMMM', { locale: enGB });
+    }
+  }
+
   return [
-    { label: 'Phone number added', done: Boolean(p.phone) },
-    { label: 'Date of birth added', done: Boolean(p.dob) },
-    { label: 'Height and weight recorded', done: p.heightCm > 0 && p.weightKg > 0 },
-    { label: 'Terms accepted', done: p.termsAccepted },
     {
-      label: booking.isCharityJump ? 'Charity selected' : 'Jump cost cleared',
-      done: booking.isCharityJump ? Boolean(booking.charity) : booking.hasPaid,
+      id: 'phone',
+      label: 'Phone number added',
+      done: Boolean(p.phone),
+      description: 'Add the number the airfield can reach you on.',
+      href: '/portal/profile',
+    },
+    {
+      id: 'dob',
+      label: 'Date of birth added',
+      done: Boolean(p.dob),
+      description: 'Required for the British Skydiving membership.',
+      href: '/portal/profile',
+    },
+    {
+      id: 'measurements',
+      label: 'Height and weight recorded',
+      done: p.heightCm > 0 && p.weightKg > 0,
+      description: 'Used to fit your harness on the day.',
+      href: '/portal/profile',
+    },
+    {
+      id: 'terms',
+      label: 'Terms accepted',
+      done: p.termsAccepted,
+      description: 'Read and accept the Skyline terms and conditions.',
+      href: '/portal/profile',
+    },
+    {
+      // TODO: replace `done: false` with a real users.medical_declared field
+      // once the medical workflow lands. For now this stays outstanding so the
+      // user can complete it via the Forms page.
+      id: 'medical',
+      label: 'Medical declaration outstanding',
+      done: false,
+      description: deadlineLabel
+        ? `Required before ${deadlineLabel}. Takes about 3 minutes.`
+        : 'Takes about 3 minutes.',
+      href: '/portal/forms',
     },
   ];
 }
 
+function readinessTitle(done: number, total: number): string {
+  const remaining = total - done;
+  if (remaining === 0) return "You're ready to jump";
+  if (remaining === 1) return 'Almost there, one step to go';
+  if (remaining === 2) return 'Two steps to go';
+  if (done === 0) return "Let's get you ready";
+  return `${remaining} steps to go`;
+}
+
 export function ReadinessRing({ user, booking }: ReadinessRingProps) {
   const items = buildItems(user, booking);
-  const doneCount = items.filter((i) => i.done).length;
-  const pct = Math.round((doneCount / items.length) * 100);
-  const tone: 'sky' | 'success' | 'sunburst' = pct === 100 ? 'success' : pct >= 50 ? 'sky' : 'sunburst';
+  const total = items.length;
+  const done = items.filter((i) => i.done).length;
+  const pct = Math.round((done / total) * 100);
 
   return (
-    <Card className="relative flex h-full flex-col overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-16 -bottom-16 size-48 rounded-full bg-sunburst/10 blur-3xl"
-      />
-      <header className="relative mb-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-sky">Readiness</p>
-        <h2 className="mt-1 text-xl font-bold text-navy sm:text-2xl">
-          {pct === 100 ? "You're ready" : 'Almost there'}
-        </h2>
+    <Card className="relative h-full overflow-hidden">
+      {/* Header: eyebrow + completion fraction */}
+      <header className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-charcoal-300">
+          Readiness
+        </p>
+        <p className="text-sm">
+          <span className="font-bold text-navy">
+            {done} of {total}
+          </span>{' '}
+          <span className="text-charcoal-400">complete</span>
+        </p>
       </header>
 
-      <div className="relative flex flex-col items-center gap-4 py-2">
-        <CircularProgress value={pct} size={156} strokeWidth={12} tone={tone} label="Profile readiness">
-          <span className="font-heading text-4xl font-extrabold text-navy">
-            <AnimatedNumber value={pct} />
-          </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-charcoal-300">
-            Complete
-          </span>
-        </CircularProgress>
+      <h2 className="mt-2 text-xl font-bold text-navy sm:text-2xl">
+        {readinessTitle(done, total)}
+      </h2>
 
-        <ul className="mt-2 w-full space-y-2">
-          {items.map((item) => (
-            <li key={item.label} className="flex items-center gap-2.5 text-sm">
-              <span
-                className={cn(
-                  'flex size-5 shrink-0 items-center justify-center rounded-full',
-                  item.done ? 'bg-success/15 text-success' : 'bg-charcoal-50 text-charcoal-300',
-                )}
-              >
-                {item.done ? (
-                  <Check className="size-3.5" aria-hidden />
-                ) : (
-                  <X className="size-3.5" aria-hidden />
-                )}
-              </span>
-              <span className={cn(item.done ? 'text-charcoal' : 'text-charcoal-400')}>
-                {item.label}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {/* Horizontal progress bar */}
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-navy/[0.06]">
+        <motion.div
+          className="h-full rounded-full bg-success"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+        />
       </div>
+
+      {/* Items list. Completed → strikethrough green-check row.
+          Outstanding → highlighted sunburst notice with a Complete CTA. */}
+      <ul className="mt-6 space-y-3">
+        {items.map((it) =>
+          it.done ? (
+            <CompletedRow key={it.id} label={it.label} />
+          ) : (
+            <OutstandingItem key={it.id} item={it} />
+          ),
+        )}
+      </ul>
     </Card>
+  );
+}
+
+function CompletedRow({ label }: { label: string }) {
+  return (
+    <li className="flex items-center gap-3">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success text-white">
+        <Check className="size-3.5" aria-hidden />
+      </span>
+      <span className="text-base text-charcoal-300 line-through">{label}</span>
+    </li>
+  );
+}
+
+function OutstandingItem({ item }: { item: ReadinessItem }) {
+  return (
+    <li
+      className={cn(
+        'flex flex-col gap-3 rounded-card border border-sunburst-200 bg-sunburst-50 p-4',
+        'sm:flex-col sm:items-center sm:gap-4',
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-sunburst-300"
+        >
+          <Circle className="size-3.5 text-transparent" aria-hidden />
+        </span>
+        <div className="flex-1">
+          <p className="text-base font-bold text-sunburst-600">{item.label}</p>
+          {item.description && (
+            <p className="mt-0.5 text-sm text-sunburst-600/85">{item.description}</p>
+          )}
+        </div>
+      </div>
+      <Link
+        href={item.href}
+        className={cn(
+          'inline-flex w-full items-center justify-center gap-1.5 rounded-pill bg-sunburst-600 px-4 py-2 text-sm font-semibold text-white shadow-sm',
+          'transition-all hover:bg-sunburst-500 hover:shadow-md',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sunburst focus-visible:ring-offset-2 focus-visible:ring-offset-cloud',
+        )}
+      >
+        Complete
+        <ArrowRight className="size-4" aria-hidden />
+      </Link>
+    </li>
   );
 }
