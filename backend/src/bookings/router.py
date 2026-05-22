@@ -19,9 +19,24 @@ from .schemas import (
     BookingResponse,
     DatesChangeRequestBody,
     VenueChangeRequestBody,
+    VenueSummary,
 )
 
 router = APIRouter(prefix="/bookings/me", tags=["bookings"])
+venues_router = APIRouter(prefix="/venues", tags=["venues"])
+
+
+@venues_router.get(
+    "",
+    response_model=list[VenueSummary],
+    status_code=status.HTTP_200_OK,
+    summary="List every venue (used by the venue change picker)",
+)
+async def list_venues(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> list[VenueSummary]:
+    return await service.list_venues(db)
 
 
 @router.get(

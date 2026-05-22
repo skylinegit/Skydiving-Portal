@@ -1,5 +1,5 @@
-import type { BookingDetails, SessionUser, UserProfile, Sex } from '@/types';
-import { MOCK_BOOKING, MOCK_USER } from '@/lib/mock-data';
+import type { BookingDetails, SessionUser, UserProfile, Sex, Venue } from '@/types';
+import { MOCK_BOOKING, MOCK_USER, MOCK_VENUES } from '@/lib/mock-data';
 
 // Typed API client. When NEXT_PUBLIC_API_BASE_URL is set, auth + /me hit the
 // real FastAPI backend (auth/router.py and users/router.py). Without the env
@@ -59,6 +59,10 @@ async function apiFetch<T = unknown>(path: string, opts: RequestInit = {}): Prom
   const url = `${API_BASE_URL}${path}`;
   const hasBody = opts.body !== undefined && opts.body !== null;
   const res = await fetch(url, {
+    // Always bypass HTTP caches. The portal's GETs (e.g. /me, /bookings/me)
+    // must reflect the latest writes immediately after PATCH/POST, and
+    // without this the browser was returning a stale /me body on reload.
+    cache: 'no-store',
     ...opts,
     credentials: 'include',
     headers: {
@@ -168,6 +172,42 @@ export async function login(email: string, password: string): Promise<SessionUse
   await delay();
   mockUser = { ...mockUser, account: { ...mockUser.account, email } };
   writeMockSession(email);
+  return mockUser;
+}
+
+export interface RegisterPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  bookingReference: string;
+}
+
+export async function register(input: RegisterPayload): Promise<SessionUser> {
+  if (USE_REAL_BACKEND) {
+    // /auth/register returns the full UserPublic and sets the session cookie
+    // so the caller can drop the user straight into the portal.
+    const me = await apiFetch<BackendUser>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: input.email,
+        password: input.password,
+        booking_reference: input.bookingReference,
+        first_name: input.firstName,
+        last_name: input.lastName,
+      }),
+    });
+    return backendUserToSession(me);
+  }
+
+  // Mock mode: pretend it worked and seed a session so the portal renders.
+  await delay();
+  const displayName = `${input.firstName} ${input.lastName}`.trim() || 'Jumper';
+  mockUser = {
+    ...mockUser,
+    account: { ...mockUser.account, email: input.email, displayName },
+  };
+  writeMockSession(input.email);
   return mockUser;
 }
 
@@ -382,25 +422,35 @@ export async function getBooking(): Promise<BookingDetails> {
   return mockBooking;
 }
 
+// ---------------------------------------------------------------------------
+// Venues
+// ---------------------------------------------------------------------------
+
+interface BackendVenue {
+  id: number;
+  name: string;
+  slug: string;
+  region: string | null;
+}
+
+export async function getVenues(): Promise<Venue[]> {
+  if (USE_REAL_BACKEND) {
+    const data = await apiFetch<BackendVenue[]>('/venues');
+    return data.map((v) => ({ id: v.id, slug: v.slug, name: v.name, region: v.region }));
+  }
+  await delay();
+  return MOCK_VENUES;
+}
+
 export async function requestVenueChange(
-  newVenueId: string,
+  newVenueId: number,
+  newVenueSlug: string,
   newVenueName: string,
 ): Promise<BookingDetails> {
   if (USE_REAL_BACKEND) {
-    // Backend expects a numeric venue_id. The frontend stores it as a slug
-    // ('headcorn'). The lookup happens server-side — for now the frontend
-    // pages still pass the slug, so we accept either. When the venue picker
-    // is reworked to use ids, swap this to a parsed integer.
-    const parsed = Number.parseInt(newVenueId, 10);
-    if (!Number.isFinite(parsed)) {
-      throw {
-        code: 'client_invalid_venue',
-        message: 'Venue id must be numeric to submit a change to the backend.',
-      } satisfies ApiError;
-    }
     const data = await apiFetch<BackendBooking>('/bookings/me/venue-change-request', {
       method: 'POST',
-      body: JSON.stringify({ new_venue_id: parsed }),
+      body: JSON.stringify({ new_venue_id: newVenueId }),
     });
     return backendBookingToDetails(data);
   }
@@ -409,7 +459,7 @@ export async function requestVenueChange(
     ...mockBooking,
     venueChangeRequest: {
       status: 'pending',
-      requested: { venueId: newVenueId, venueName: newVenueName },
+      requested: { venueId: newVenueSlug, venueName: newVenueName },
     },
   };
   return mockBooking;

@@ -55,3 +55,21 @@ class VenueChangeRequestBody(BaseModel):
 class DatesChangeRequestBody(BaseModel):
     date1: date
     date2: date | None = None
+
+
+# ---- Venue list ----
+
+
+class VenueSummary(BaseModel):
+    """Lightweight venue record used by the venue picker on the portal.
+
+    `slug` is the kebab-cased venue name and matches the file name in
+    `frontend/src/content/airfields/{slug}.ts` so the frontend can cross-link
+    to the matching airfield content. The numeric `id` is what the backend
+    expects when the user submits a venue change.
+    """
+
+    id: int
+    name: str
+    slug: str
+    region: str | None = None

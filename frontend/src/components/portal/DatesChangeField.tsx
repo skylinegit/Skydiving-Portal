@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { PendingChangeBanner } from './PendingChangeBanner';
 import { useToast } from '@/components/ui/Toast';
-import { requestDatesChange } from '@/lib/api';
+import { requestDatesChange, type ApiError } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import type { BookingDetails } from '@/types';
 
@@ -54,8 +54,16 @@ export function DatesChangeField({ booking, onUpdate }: DatesChangeFieldProps) {
         title: 'Date change requested',
         description: 'The Skyline team will confirm your new dates by email.',
       });
-    } catch {
-      toast({ tone: 'error', title: 'Could not submit', description: 'Please try again.' });
+    } catch (err) {
+      const apiErr = err as ApiError;
+      const alreadyPending = apiErr?.code === 'http_409';
+      toast({
+        tone: 'error',
+        title: alreadyPending ? 'Already pending' : 'Could not submit',
+        description: alreadyPending
+          ? 'A date change is already being reviewed by the team.'
+          : (apiErr?.message ?? 'Please try again.'),
+      });
     } finally {
       setSubmitting(false);
     }

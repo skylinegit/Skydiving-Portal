@@ -12,6 +12,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..bookings.models import Booking
 from ..config import settings
 from ..integrations import email as email_service
 from ..users.models import User
@@ -58,6 +59,77 @@ async def authenticate(db: AsyncSession, *, email: str, password: str) -> User:
 def _dummy_verify() -> None:
     """Run a dummy hash compare to keep timing similar for unknown emails."""
     verify_password("dummy", "$2b$12$abcdefghijklmnopqrstuv.cR4nDz0qH0lYpY3HnVxv4LqGmYhO/eIm")
+
+
+# ---------------------------------------------------------------------------
+# Registration
+# ---------------------------------------------------------------------------
+
+
+async def register(
+    db: AsyncSession,
+    *,
+    email: str,
+    password: str,
+    booking_reference: str,
+    first_name: str,
+    last_name: str,
+) -> User:
+    """Create a new portal account and link it to an existing booking.
+
+    The booking must:
+      - exist (looked up by `booking_number`)
+      - not already be linked to a user
+
+    The email must not already be in use.
+
+    On success the booking is updated with `user_id` so future portal logins
+    can look up the booking by user.
+    """
+    normalised_email = email.lower().strip()
+
+    try:
+        booking_number = int(booking_reference.strip())
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Booking reference must be the number from your confirmation email.",
+        )
+
+    booking = await db.get(Booking, booking_number)
+    if booking is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="We could not find a booking with that reference.",
+        )
+    if booking.user_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This booking is already linked to a portal account. Please sign in instead.",
+        )
+
+    existing = await db.execute(select(User).where(User.email == normalised_email))
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account already exists for that email.",
+        )
+
+    user = User(
+        email=normalised_email,
+        password_hash=hash_password(password),
+        hash_algorithm="bcrypt",
+        first_name=first_name.strip(),
+        last_name=last_name.strip(),
+    )
+    db.add(user)
+    await db.flush()  # populate user.user_id before we link the booking
+
+    booking.user_id = user.user_id
+    log.info(
+        "New portal account registered user_id=%s booking=%s", user.user_id, booking_number
+    )
+    return user
 
 
 # ---------------------------------------------------------------------------

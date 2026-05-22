@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { profileSchema, type ProfileInput } from '@/lib/validation';
 import { updateProfile } from '@/lib/api';
+import { useSessionRefresh } from '@/lib/auth';
 import {
   cmToFeetInches,
   feetInchesToCm,
@@ -35,6 +36,7 @@ const sexOptions = [
 
 export function ProfileForm({ profile, onProfileUpdate }: ProfileFormProps) {
   const { toast } = useToast();
+  const refreshSession = useSessionRefresh();
   const initialHeight = cmToFeetInches(profile.heightCm);
   const initialWeight = kgToStonePounds(profile.weightKg);
 
@@ -71,7 +73,18 @@ export function ProfileForm({ profile, onProfileUpdate }: ProfileFormProps) {
     };
     const saved = await updateProfile(next);
     onProfileUpdate(saved);
-    reset(values);
+    // Re-sync the shared session context so the header greeting and any
+    // other consumers immediately see the new values without a manual reload.
+    void refreshSession();
+    reset({
+      ...values,
+      // After save, re-derive imperial values from the canonical metric we
+      // just persisted so the form starts from the source of truth.
+      heightFeet: cmToFeetInches(saved.heightCm).feet,
+      heightInches: cmToFeetInches(saved.heightCm).inches,
+      weightStone: kgToStonePounds(saved.weightKg).stone,
+      weightPounds: kgToStonePounds(saved.weightKg).pounds,
+    });
     toast({
       tone: 'success',
       title: 'Profile updated',

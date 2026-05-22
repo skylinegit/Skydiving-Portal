@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .auth.router import router as auth_router
-from .bookings.router import router as bookings_router
+from .bookings.router import router as bookings_router, venues_router
 from .config import settings
 from .db import engine
 from .users.router import router as users_router
@@ -62,6 +62,7 @@ async def health() -> dict[str, Any]:
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(users_router, prefix="", tags=["users"])
 app.include_router(bookings_router)
+app.include_router(venues_router)
 
 
 @app.exception_handler(Exception)

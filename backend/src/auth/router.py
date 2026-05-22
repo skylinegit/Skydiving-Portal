@@ -19,6 +19,7 @@ from .schemas import (
     ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
+    RegisterRequest,
     ResetPasswordRequest,
 )
 
@@ -40,6 +41,39 @@ async def login(
     """Return the full user payload so the frontend does not need a follow-up
     GET /me round-trip immediately after sign-in."""
     user = await service.authenticate(db, email=payload.email, password=payload.password)
+    session = await sessions.create_session(db, user_id=user.user_id, request=request)
+    await db.commit()
+    sessions.set_session_cookie(response, session.session_id)
+    return UserPublic.model_validate(user)
+
+
+@router.post(
+    "/register",
+    response_model=UserPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a portal account linked to an existing booking",
+)
+async def register(
+    payload: RegisterRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> UserPublic:
+    """Register a new portal account.
+
+    Requires a valid booking reference. The new account is linked to that
+    booking on success and the user is signed in (session cookie set) so the
+    frontend can drop them straight into the portal without a second round
+    trip to /auth/login.
+    """
+    user = await service.register(
+        db,
+        email=payload.email,
+        password=payload.password,
+        booking_reference=payload.booking_reference,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+    )
     session = await sessions.create_session(db, user_id=user.user_id, request=request)
     await db.commit()
     sessions.set_session_cookie(response, session.session_id)

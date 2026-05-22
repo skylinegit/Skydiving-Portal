@@ -12,6 +12,7 @@ import { ChangePasswordDialog } from './ChangePasswordDialog';
 import { useToast } from '@/components/ui/Toast';
 import { changeEmailSchema, type ChangeEmailInput } from '@/lib/validation';
 import { changeEmail, logOutOtherSessions } from '@/lib/api';
+import { useSessionRefresh } from '@/lib/auth';
 import type { UserAccount } from '@/types';
 
 interface AccountSectionProps {
@@ -21,6 +22,7 @@ interface AccountSectionProps {
 
 export function AccountSection({ account, onAccountUpdate }: AccountSectionProps) {
   const { toast } = useToast();
+  const refreshSession = useSessionRefresh();
   const [loggingOut, setLoggingOut] = useState(false);
   const {
     register,
@@ -36,6 +38,7 @@ export function AccountSection({ account, onAccountUpdate }: AccountSectionProps
     if (values.newEmail === account.email) return;
     const res = await changeEmail(values.newEmail);
     onAccountUpdate({ ...account, pendingEmailChange: res.pendingEmail });
+    void refreshSession();
     toast({
       tone: 'success',
       title: 'Confirmation email sent',

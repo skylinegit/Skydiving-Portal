@@ -14,7 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..users.models import User
 from .models import Booking, Charity, CharityCode, Venue
-from .schemas import BookingResponse, DatesChangeRequest, VenueChangeRequest
+from .schemas import (
+    BookingResponse,
+    DatesChangeRequest,
+    VenueChangeRequest,
+    VenueSummary,
+)
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +28,21 @@ def venue_slug(name: str) -> str:
     """Derive a stable slug from a venue name so the frontend can match
     against its `content/airfields/{slug}.ts` files."""
     return name.lower().replace(" ", "-")
+
+
+async def list_venues(db: AsyncSession) -> list[VenueSummary]:
+    """Return every venue, sorted by name, for the change-request picker."""
+    result = await db.execute(select(Venue).order_by(Venue.venue_name))
+    venues = result.scalars().all()
+    return [
+        VenueSummary(
+            id=v.venue_id,
+            name=v.venue_name,
+            slug=venue_slug(v.venue_name),
+            region=v.county,
+        )
+        for v in venues
+    ]
 
 
 async def get_my_booking(db: AsyncSession, *, user: User) -> BookingResponse:

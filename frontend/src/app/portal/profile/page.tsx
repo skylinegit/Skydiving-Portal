@@ -4,14 +4,13 @@ import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PageHeader } from '@/components/portal/PageHeader';
-import { AccountSection } from '@/components/portal/AccountSection';
 import { BookingDetailsCard } from '@/components/portal/BookingDetailsCard';
 import { VenueChangeField } from '@/components/portal/VenueChangeField';
 import { DatesChangeField } from '@/components/portal/DatesChangeField';
 import { ProfileForm } from '@/components/portal/ProfileForm';
 import { getBooking } from '@/lib/api';
 import { useCurrentUser } from '@/lib/auth';
-import type { BookingDetails, UserAccount, UserProfile } from '@/types';
+import type { BookingDetails, UserProfile } from '@/types';
 
 export default function ProfilePage() {
   // Shared user from SessionProvider — no extra GET /me fetch on this page.
@@ -43,10 +42,6 @@ export default function ProfilePage() {
     };
   }, []);
 
-  const handleAccountUpdate = (next: UserAccount) => {
-    setUser((prev) => (prev ? { ...prev, account: next } : prev));
-  };
-
   const handleProfileUpdate = (next: UserProfile) => {
     setUser((prev) => (prev ? { ...prev, profile: next } : prev));
   };
@@ -56,9 +51,9 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Profile"
+        eyebrow="Booking Detail"
         title="Manage your booking"
-        description="Update your account details, request changes to your booking and complete your jumper profile."
+        description="Request changes to your booking and complete your jumper profile."
       />
 
       {isLoading || !user || !booking ? (
@@ -69,8 +64,6 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <AccountSection account={user.account} onAccountUpdate={handleAccountUpdate} />
-
           <Card>
             <CardHeader>
               <CardTitle>Your booking details</CardTitle>

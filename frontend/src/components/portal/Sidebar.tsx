@@ -54,10 +54,10 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cn(
-                    'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                    'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                     isActive
                       ? 'bg-sky text-cloud shadow-sm'
-                      : 'text-cloud/70 hover:bg-cloud/5 hover:text-cloud',
+                      : 'text-cloud/75 hover:bg-sky/20 hover:text-cloud hover:translate-x-0.5',
                   )}
                   aria-current={isActive ? 'page' : undefined}
                 >
@@ -80,7 +80,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       <div className="border-t border-cloud/10 p-4">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-cloud/80 hover:bg-cloud/5 hover:text-cloud"
+          className="w-full justify-start gap-3 text-cloud/80 hover:bg-danger/20 hover:text-cloud"
           onClick={handleLogout}
           leftIcon={<LogOut className="size-4" aria-hidden />}
         >

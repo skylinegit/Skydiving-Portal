@@ -1,12 +1,12 @@
 import type { BookingDetails, SessionUser, Venue } from '@/types';
 
 export const MOCK_VENUES: Venue[] = [
-  { id: 'headcorn', name: 'Headcorn', region: 'Kent' },
-  { id: 'old-sarum', name: 'Old Sarum', region: 'Wiltshire' },
-  { id: 'maidstone', name: 'Maidstone', region: 'Kent' },
-  { id: 'beccles', name: 'Beccles', region: 'Suffolk' },
-  { id: 'hibaldstow', name: 'Hibaldstow', region: 'Lincolnshire' },
-  { id: 'salisbury', name: 'Salisbury', region: 'Wiltshire' },
+  { id: 1, slug: 'headcorn', name: 'Headcorn', region: 'Kent' },
+  { id: 2, slug: 'old-sarum', name: 'Old Sarum', region: 'Wiltshire' },
+  { id: 3, slug: 'maidstone', name: 'Maidstone', region: 'Kent' },
+  { id: 4, slug: 'beccles', name: 'Beccles', region: 'Suffolk' },
+  { id: 5, slug: 'hibaldstow', name: 'Hibaldstow', region: 'Lincolnshire' },
+  { id: 6, slug: 'salisbury', name: 'Salisbury', region: 'Wiltshire' },
 ];
 
 export const MOCK_USER: SessionUser = {

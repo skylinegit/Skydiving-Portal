@@ -27,9 +27,10 @@ from src.bookings.models import Booking, Charity, CharityCode, Venue
 from src.db import AsyncSessionLocal
 from src.users.models import User
 
-TEST_EMAIL = "test@skylineevents.co.uk"
-TEST_PASSWORD = "Skydive2025!"
-
+TEST_EMAIL = "saad.wicks@gmail.com"
+TEST_PASSWORD = "SaadWicks2025!"
+# TEST_EMAIL = "test@skylineevents.co.uk"
+# TEST_PASSWORD = "Skydive2025!"
 # Mirrors MOCK_BOOKING in frontend/src/lib/mock-data.ts.
 MOCK_BOOKING_NUMBER = 24087482
 MOCK_BOOKING_DATE = date(2025, 11, 12)
