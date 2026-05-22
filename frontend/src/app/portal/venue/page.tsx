@@ -121,7 +121,7 @@ export default function VenuePage() {
           <InfoTile
             icon={<Cloud className="size-4" aria-hidden />}
             label="Weather policy"
-            value="Attend regardless"
+            value="Attend regardles"
           />
           <InfoTile
             icon={<Scale className="size-4" aria-hidden />}
