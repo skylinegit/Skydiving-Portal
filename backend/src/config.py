@@ -58,7 +58,12 @@ class Settings(BaseSettings):
     smtp_port: int = Field(default=587)
     smtp_username: str = Field(default="")
     smtp_password: str = Field(default="")
-    smtp_from: str = Field(default="no-reply@skylineevents.co.uk")
+    smtp_from: str = Field(default="myskydive@skylineevents.co.uk")
+    # STARTTLS on the chosen port (typical for 587). Most providers expect this.
+    smtp_use_tls: bool = Field(default=True)
+    # Implicit TLS from the start of the connection (typical for 465).
+    # Only set one of `smtp_use_tls` and `smtp_use_ssl` to true.
+    smtp_use_ssl: bool = Field(default=False)
 
     @property
     def is_production(self) -> bool:
