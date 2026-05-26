@@ -302,6 +302,29 @@ export async function changeEmail(newEmail: string): Promise<{ pendingEmail: str
   return { pendingEmail: newEmail };
 }
 
+export async function confirmEmailChange(token: string): Promise<{ ok: true }> {
+  if (USE_REAL_BACKEND) {
+    await apiFetch('/auth/confirm-email-change', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    return { ok: true };
+  }
+  await delay();
+  // Mock: pretend the pending change has applied.
+  if (mockUser.account.pendingEmailChange) {
+    mockUser = {
+      ...mockUser,
+      account: {
+        ...mockUser.account,
+        email: mockUser.account.pendingEmailChange,
+        pendingEmailChange: null,
+      },
+    };
+  }
+  return { ok: true };
+}
+
 export async function logOutOtherSessions(): Promise<{ ok: true }> {
   if (USE_REAL_BACKEND) {
     await apiFetch('/auth/logout-others', { method: 'POST' });

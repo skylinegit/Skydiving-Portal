@@ -58,7 +58,12 @@ class Settings(BaseSettings):
     smtp_port: int = Field(default=587)
     smtp_username: str = Field(default="")
     smtp_password: str = Field(default="")
-    smtp_from: str = Field(default="myskydive@skylineevents.co.uk")
+    smtp_from: str = Field(default="noreply@skylineskydiving.co.uk")
+    # Display name used in the From: header, e.g. "Skyline Skydiving <noreply@...>"
+    smtp_from_name: str = Field(default="Skyline Skydiving")
+    # Where user replies go. The noreply sender is for delivery only; real
+    # human replies route to the support inbox.
+    smtp_reply_to: str = Field(default="info@skylineevents.co.uk")
     # STARTTLS on the chosen port (typical for 587). Most providers expect this.
     smtp_use_tls: bool = Field(default=True)
     # Implicit TLS from the start of the connection (typical for 465).

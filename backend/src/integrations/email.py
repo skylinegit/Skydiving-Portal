@@ -24,6 +24,7 @@ import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
+from email.utils import formataddr
 from textwrap import dedent
 
 from ..config import settings
@@ -81,8 +82,10 @@ async def send_email_change_confirmation(*, to: str, confirm_url: str) -> None:
 def _build_message(*, to: str, subject: str, body: str) -> EmailMessage:
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = settings.smtp_from
+    msg["From"] = formataddr((settings.smtp_from_name, settings.smtp_from))
     msg["To"] = to
+    if settings.smtp_reply_to:
+        msg["Reply-To"] = settings.smtp_reply_to
     msg.set_content(body)
     return msg
 

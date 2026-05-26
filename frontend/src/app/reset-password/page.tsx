@@ -1,17 +1,32 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ShieldCheck } from 'lucide-react';
 import { AuthShell } from '@/components/portal/AuthShell';
 import { TextField } from '@/components/forms/TextField';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validation';
-import { resetPassword } from '@/lib/api';
+import { resetPassword, type ApiError } from '@/lib/api';
 
 export default function ResetPasswordPage() {
+  // useSearchParams forces client rendering; wrap in Suspense so the
+  // build doesn't error and the rest of the tree can stream.
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token') ?? '';
   const [done, setDone] = useState(false);
   const {
     register,
@@ -23,9 +38,42 @@ export default function ResetPasswordPage() {
   });
 
   const onSubmit = handleSubmit(async (values) => {
-    await resetPassword('mock-token', values.password);
-    setDone(true);
+    try {
+      await resetPassword(token, values.password);
+      setDone(true);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      toast({
+        tone: 'error',
+        title: 'Could not reset password',
+        description:
+          apiErr?.message ??
+          'The link may have expired. Request a new one and try again.',
+      });
+    }
   });
+
+  if (!token && !done) {
+    return (
+      <AuthShell
+        title="Invalid reset link"
+        subtitle="This page needs a valid reset token from your email."
+        footer={
+          <Link
+            href="/forgot-password"
+            className="font-semibold text-cloud/90 hover:text-cloud"
+          >
+            Request a new link
+          </Link>
+        }
+      >
+        <p className="text-sm text-charcoal-400">
+          The reset link in your email contains a one-time token. Please open the link directly
+          from the email you received.
+        </p>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell
