@@ -68,7 +68,7 @@ function ResetPasswordContent() {
         }
       >
         <p className="text-sm text-charcoal-400">
-          The reset link in your email contains a one-time token. Please open the link directly
+          The reset link in your email contains a one time token. Please open the link directly
           from the email you received.
         </p>
       </AuthShell>
