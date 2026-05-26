@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronDown, LogOut, User, UserCircle2 } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, UserCircle2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,9 +58,9 @@ export function UserMenu({ displayName }: UserMenuProps) {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/portal/profile">
-            <User className="size-4 text-charcoal-400" aria-hidden />
-            Edit Profile
+          <Link href="/portal/settings">
+            <Settings className="size-4 text-charcoal-400" aria-hidden />
+            Settings
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

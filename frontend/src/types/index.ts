@@ -40,9 +40,15 @@ export interface BookingDetails {
 }
 
 export interface Venue {
-  id: string;
+  /**
+   * Numeric primary key from the backend `venues` table. The change-request
+   * endpoint requires this exact value.
+   */
+  id: number;
+  /** Kebab-cased venue name, used to match `content/airfields/{slug}.ts`. */
+  slug: string;
   name: string;
-  region: string;
+  region: string | null;
 }
 
 export interface AirfieldSection {

@@ -6,30 +6,34 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Spinner } from '@/components/ui/Spinner';
-import { getSession } from '@/lib/auth';
+import { useSession } from '@/lib/auth';
 
 const SIDEBAR_WIDTH = 280;
 
 export function PortalShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [authChecked, setAuthChecked] = useState(false);
+  // useSession is async-aware: in real mode it probes `GET /me` and only
+  // resolves once we know whether the cookie is valid. In mock mode it
+  // reads localStorage synchronously.
+  const { session, loading } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
+    if (!loading && !session) {
       router.replace('/login');
-    } else {
-      setAuthChecked(true);
     }
-  }, [router]);
+  }, [loading, session, router]);
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  if (!authChecked) {
+  // Show spinner while the session check is in flight, OR after it has
+  // resolved to "no session" and we are about to redirect. Without this
+  // guard the portal would render its layout briefly and the user would
+  // see a flash of an empty shell.
+  if (loading || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-soft-gradient">
         <Spinner label="Loading your portal" />

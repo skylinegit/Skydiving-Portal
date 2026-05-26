@@ -10,35 +10,37 @@ import { StatStrip } from '@/components/portal/dashboard/StatStrip';
 import { HelpBanner } from '@/components/portal/dashboard/HelpBanner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { checklistIntro, checklistItems } from '@/content/checklist';
-import { getBooking, getMe } from '@/lib/api';
-import { useSession } from '@/lib/auth';
-import type { BookingDetails, SessionUser } from '@/types';
+import { getBooking } from '@/lib/api';
+import { useCurrentUser } from '@/lib/auth';
+import type { BookingDetails } from '@/types';
 
 export default function ChecklistPage() {
-  const { session } = useSession();
-  const [user, setUser] = useState<SessionUser | null>(null);
+  // Shared user from SessionProvider — no extra GET /me fetch on this page.
+  const user = useCurrentUser();
   const [booking, setBooking] = useState<BookingDetails | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    async function load() {
-      const [me, bk] = await Promise.all([getMe(), getBooking()]);
-      if (!active) return;
-      setUser(me);
-      setBooking(bk);
-      setLoading(false);
-    }
-    load();
+    getBooking()
+      .then((bk) => {
+        if (active) setBooking(bk);
+      })
+      .catch(() => {
+        // 404 (no booking yet) or network blip — fall through to the loading
+        // state. Toast/banner UX can be layered later.
+        if (active) setBooking(null);
+      })
+      .finally(() => {
+        if (active) setBookingLoading(false);
+      });
     return () => {
       active = false;
     };
   }, []);
 
-  const displayName =
-    user?.account.displayName.split(' ')[0] ??
-    session?.email?.split('@')[0] ??
-    'Jumper';
+  const displayName = user?.account.displayName.split(' ')[0] ?? 'Jumper';
+  const isLoading = bookingLoading || user == null;
 
   return (
     <div className="space-y-8">
@@ -47,10 +49,10 @@ export default function ChecklistPage() {
         jumpDate={booking?.date1}
         venueName={booking?.venueName}
         bookingRef={booking?.bookingRef}
-        loading={loading}
+        loading={isLoading}
       />
 
-      <StatStrip booking={booking} loading={loading} />
+      <StatStrip booking={booking} loading={isLoading} />
 
       {/* Bento row: altitude timeline (wide) + readiness ring (narrow) */}
       <section className="grid gap-6 lg:grid-cols-3">
@@ -67,7 +69,7 @@ export default function ChecklistPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
         >
-          {loading || !user || !booking ? (
+          {isLoading || !user || !booking ? (
             <Skeleton className="h-full min-h-[28rem]" />
           ) : (
             <ReadinessRing user={user} booking={booking} />
@@ -77,17 +79,15 @@ export default function ChecklistPage() {
 
       {/* Checklist */}
       <section aria-labelledby="checklist-heading" className="space-y-4">
-        <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-sky">Before you jump</p>
-            <h2
-              id="checklist-heading"
-              className="mt-1 text-2xl font-bold text-navy sm:text-3xl text-balance"
-            >
-              Your pre-jump checklist
-            </h2>
-          </div>
-          <p className="max-w-md text-sm text-charcoal-400 sm:text-right">{checklistIntro}</p>
+        <header className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-sky">Before you jump</p>
+          <h2
+            id="checklist-heading"
+            className="text-2xl font-bold text-navy sm:text-3xl text-balance"
+          >
+            Your pre-jump checklist
+          </h2>
+          <p className="max-w-2xl text-sm text-charcoal-400">{checklistIntro}</p>
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2">

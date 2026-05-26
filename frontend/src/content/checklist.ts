@@ -9,7 +9,7 @@ export interface ChecklistItem {
 }
 
 export const checklistIntro =
-  'Once you have your date confirmed it is important to make sure you are well organised in advance of your jump. Once you have completed all these steps you are ready for the big day.';
+  'Work through these four items in the weeks leading up to your jump.';
 
 export const checklistOutro = 'Once you have completed all these steps then you are ready to go.';
 

@@ -8,7 +8,7 @@ import {
   MapPin,
   Hash,
   Download,
-  User,
+  CalendarCheck,
   ArrowRight,
   Plane,
 } from 'lucide-react';
@@ -125,8 +125,11 @@ export function HeroSection({
             <HeroAction href="/portal/forms" icon={<Download className="size-4" aria-hidden />}>
               Forms
             </HeroAction>
-            <HeroAction href="/portal/profile" icon={<User className="size-4" aria-hidden />}>
-              Profile
+            <HeroAction
+              href="/portal/profile"
+              icon={<CalendarCheck className="size-4" aria-hidden />}
+            >
+              Booking
             </HeroAction>
           </div>
         </div>

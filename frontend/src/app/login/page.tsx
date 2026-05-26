@@ -58,16 +58,28 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Sign in to manage your jump booking, forms and fundraising."
       footer={
-        <p>
-          New to Skyline?{' '}
-          <a
-            href="https://www.skylineskydiving.co.uk"
-            className="font-semibold text-cloud underline-offset-2 hover:underline"
-          >
-            Book a skydive
-          </a>{' '}
-          first to receive your portal login.
-        </p>
+        <div className="space-y-1">
+          <p>
+            Already booked your jump?{' '}
+            <Link
+              href="/register"
+              className="font-semibold text-cloud underline-offset-2 hover:underline"
+            >
+              Create your portal account
+            </Link>
+            .
+          </p>
+          <p className="text-cloud/70">
+            Not booked yet?{' '}
+            <a
+              href="https://www.skylineskydiving.co.uk"
+              className="font-semibold text-cloud underline-offset-2 hover:underline"
+            >
+              Book a skydive
+            </a>{' '}
+            first.
+          </p>
+        </div>
       }
     >
       <motion.form
